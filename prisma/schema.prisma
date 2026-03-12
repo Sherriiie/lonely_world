@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  avatar        String?
+  bio           String?
+  meaningPoints Int            @default(0)
+  createdAt     DateTime       @default(now())
+  tasks         Task[]
+  registrations Registration[]
+  sentMessages  Message[]      @relation("SentMessages")
+}
+
+model Task {
+  id            String         @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  location      String
+  date          DateTime
+  maxPeople     Int            @default(5)
+  contactInfo   String
+  isPublic      Boolean        @default(true)
+  reward        String?
+  status        String         @default("open")
+  createdAt     DateTime       @default(now())
+  authorId      String
+  author        User           @relation(fields: [authorId], references: [id])
+  registrations Registration[]
+  messages      Message[]
+}
+
+model Registration {
+  id        String   @id @default(cuid())
+  userId    String
+  taskId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  senderId   String
+  taskId     String?
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  task       Task?    @relation(fields: [taskId], references: [id])
+}
